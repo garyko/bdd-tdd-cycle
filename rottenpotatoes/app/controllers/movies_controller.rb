@@ -9,18 +9,18 @@ class MoviesController < ApplicationController
   def index
     sort = params[:sort] || session[:sort]
     case sort
-    when 'title'
-      ordering,@title_header = {:order => :title}, 'hilite'
-    when 'release_date'
-      ordering,@date_header = {:order => :release_date}, 'hilite'
+      when 'title'
+        ordering,@title_header = {:order => :title}, 'hilite'
+      when 'release_date'
+        ordering,@date_header = {:order => :release_date}, 'hilite'
     end
     @all_ratings = Movie.all_ratings
     @selected_ratings = params[:ratings] || session[:ratings] || {}
-    
+
     if @selected_ratings == {}
       @selected_ratings = Hash[@all_ratings.map {|rating| [rating, rating]}]
     end
-    
+
     if params[:sort] != session[:sort]
       session[:sort] = sort
       flash.keep
@@ -62,6 +62,16 @@ class MoviesController < ApplicationController
     @movie.destroy
     flash[:notice] = "Movie '#{@movie.title}' deleted."
     redirect_to movies_path
+  end
+
+  def similar
+    @movie_id = params[:id]
+    @movie = Movie.find(params[:id])
+    @movie_title = @movie.title
+    @movie_director = @movie.director == "" ? nil : @movie.director
+    flash[:notice] = "'#{@movie_title}' has no director info"
+    @similar_movies = Movie.similar_movies(@movie_director)
+    redirect_to movies_path if @movie_director.nil?
   end
 
 end
